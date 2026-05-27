@@ -3994,11 +3994,12 @@ string DuckLakeMetadataManager::UpdateGlobalTableStats(const DuckLakeGlobalStats
 		for (auto &col_stats : stats.column_stats) {
 			auto sql = ColumnStatsSQL::FromColumnStats(col_stats);
 			batch_query +=
-			    StringUtil::Format("UPDATE {METADATA_CATALOG}.ducklake_table_column_stats "
-			                       "SET contains_null=%s, contains_nan=%s, min_value=%s, max_value=%s, extra_stats=%s "
+			    StringUtil::Format("DELETE FROM {METADATA_CATALOG}.ducklake_table_column_stats "
 			                       "WHERE table_id=%d AND column_id=%d;",
-			                       sql.contains_null, sql.contains_nan, sql.min_val, sql.max_val, sql.extra_stats,
 			                       stats.table_id.index, col_stats.column_id.index);
+			batch_query +=
+			    StringUtil::Format("INSERT INTO {METADATA_CATALOG}.ducklake_table_column_stats VALUES (%d, %d, %s, %s, %s, %s, %s);",
+			                       stats.table_id.index, col_stats.column_id.index, sql.contains_null, sql.contains_nan, sql.min_val, sql.max_val, sql.extra_stats);
 		}
 	}
 	return batch_query;
